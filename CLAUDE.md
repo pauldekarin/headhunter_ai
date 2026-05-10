@@ -49,8 +49,9 @@ pre-commit run --all-files             # lint everything
 ## Current state
 
 Stage 0 (Setup) is in progress. See `description/vault/Stage 0 - Setup.md`.
-- **0.1** Monorepo + tooling — done by Claude (this commit)
-- **0.2** CI baseline — TODO, written by user
-- **0.3** Onboarding modal with ToS disclaimer — TODO, written by user
+- **0.1** Monorepo + tooling — done
+- **0.2** CI baseline — done
+- **0.3** UI baseline (Tailwind 4 + shadcn-svelte) — current
+- **0.4** Onboarding modal with ToS disclaimer — TODO
 
-When the user picks up the next task, they will say "starting 0.2" (or similar) and Claude responds with Socratic context, not code.
+When the user picks up the next task, they will say "starting 0.4" (or similar) and Claude responds with Socratic context, not code.
