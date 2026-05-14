@@ -48,10 +48,11 @@ pre-commit run --all-files             # lint everything
 
 ## Current state
 
-Stage 0 (Setup) is in progress. See `description/vault/Stage 0 - Setup.md`.
-- **0.1** Monorepo + tooling — done
-- **0.2** CI baseline — done
-- **0.3** UI baseline (Tailwind 4 + shadcn-svelte) — current
-- **0.4** Onboarding modal with ToS disclaimer — TODO
+Stage 0 (Setup) complete. Stage 1 (MVP) in progress. See `description/vault/Stage 1 - MVP.md`.
 
-When the user picks up the next task, they will say "starting 0.4" (or similar) and Claude responds with Socratic context, not code.
+- **1.1** BrowserCore (persistent profile, stealth) — done
+- **1.4** FastAPI backend skeleton — current (pulled ahead of 1.2 so auth-flow has a transport)
+- **1.2** Auth-flow — next, after 1.4
+- **1.3**, **1.5**–**1.12** — TODO
+
+When the user picks up the next task, they will say "starting 1.4" (or similar) and Claude responds with Socratic context, not code.
