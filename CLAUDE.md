@@ -53,7 +53,8 @@ Stage 0 (Setup) complete. Stage 1 (MVP) in progress. See `description/vault/Stag
 - **1.1** BrowserCore (persistent profile, stealth) — done
 - **1.4** FastAPI backend skeleton — done (pulled ahead of 1.2 so auth-flow has a transport)
 - **1.2** Auth-flow — done
-- **1.3** Parser module — current
-- **1.5**–**1.12** — TODO
+- **1.3** Parser module — done
+- **1.5** SQLite + migrations — done
+- **1.6**–**1.12** — TODO
 
-When the user picks up the next task, they will say "starting 1.3" (or similar) and Claude responds with Socratic context, not code.
+When the user picks up the next task, they will say "starting 1.6" (or similar) and Claude responds with Socratic context, not code.
