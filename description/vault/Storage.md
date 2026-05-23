@@ -18,6 +18,7 @@ status: planned
 | `vacancies` | спарсенные вакансии ([[Domain Model]]) |
 | `applications` | отклики (vacancy + letter + status) |
 | `cover_letters` | сгенерированные тексты с версиями |
+| `settings` | настройки приложения — синглтон (одна строка, фиксированный PK) |
 | `prompts` | имена промпт-шаблонов |
 | `prompt_versions` | версии шаблонов с метриками |
 | `audit_log` | все действия (парсинг, генерация, отправка, ошибки) |
@@ -40,7 +41,6 @@ status: planned
 ├── prompts/               ← YAML-шаблоны промптов
 │   ├── default.yaml
 │   └── ...
-├── config.yaml            ← настройки приложения
 ├── consent.json           ← согласие с ToS-дисклеймером
 ├── logs/                  ← структурные JSON-логи (ротация по дням)
 └── backups/               ← еженедельные бэкапы DB (ротация 4 шт.)

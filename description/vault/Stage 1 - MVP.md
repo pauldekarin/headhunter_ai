@@ -73,13 +73,20 @@ State machine для каждой вакансии (см. [[Domain Model]]): `pa
 
 ---
 
-### 1.7 MCP server — `L`
+### 1.7 Backend API foundation — `M`
 
-Экспонировать tools: `list_pending_vacancies`, `get_vacancy(id)`, `get_user_context()`, `submit_cover_letter(vacancy_id, text)`. Транспорт stdio + streamable HTTP. См. [[MCP]].
+Реальные эндпоинты поверх каркаса 1.4: убрать моки, подключить SQLite и стейт-машину 1.6, добавить недостающие таблицы и API настроек.
 
-**AC**: Claude Desktop с конфигом видит tools; вызов tool пишет в DB.
+- Таблицы `cover_letters` (версии писем по `application_id`) и `settings` (синглтон с `CHECK(id=1)`).
+- Реальные `GET /api/v1/vacancies`, `GET /api/v1/vacancies/{id}`, WebSocket `/ws/vacancies` — из БД, не моки.
+- Lifecycle-эндпоинты на стейт-машине: `POST /api/v1/vacancies/{id}/queue_for_letter`, `/cover_letter`, `/submit`, `GET /{id}/status`.
+- `GET`/`PUT /api/v1/settings` поверх таблицы `settings` (get-or-create с дефолтами из pydantic).
 
-**Зависимости**: 1.6.
+См. [[REST]], [[Storage]], [[Domain Model]].
+
+**AC**: pytest зелёный по эндпоинтам; UI может ходить в реальные `vacancies` и `settings` без моков.
+
+**Зависимости**: 1.4, 1.5, 1.6.
 
 ---
 
@@ -123,13 +130,23 @@ State machine для каждой вакансии (см. [[Domain Model]]): `pa
 
 ---
 
-### 1.12 Документация подключения Claude Desktop — `S`
+### 1.12 MCP server — `L`
+
+Экспонировать tools: `list_pending_vacancies`, `get_vacancy(id)`, `get_user_context()`, `submit_cover_letter(vacancy_id, text)`. Транспорт stdio + streamable HTTP. MCP — отдельный сервис в `services/mcp/`, общается с backend только через HTTP API. См. [[MCP]].
+
+**AC**: Claude Desktop с конфигом видит tools; вызов tool пишет в DB через HTTP API.
+
+**Зависимости**: 1.7, 1.10, 1.11.
+
+---
+
+### 1.13 Документация подключения Claude Desktop — `S`
 
 README с готовым `claude_desktop_config.json` snippet. См. [[MCP]].
 
 **AC**: Пользователь по README настраивает Claude Desktop за < 5 минут.
 
-**Зависимости**: 1.7.
+**Зависимости**: 1.12.
 
 ---
 
