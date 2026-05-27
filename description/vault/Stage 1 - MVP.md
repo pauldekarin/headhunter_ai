@@ -92,11 +92,13 @@ State machine для каждой вакансии (см. [[Domain Model]]): `pa
 
 ### 1.8 Writer module — `L`
 
-По vacancy_id и тексту письма: открыть страницу вакансии, нажать «Откликнуться», вставить письмо, submit, проверить успех. См. [[Writer service]].
+По vacancy_id и тексту письма: открыть страницу вакансии, нажать «Откликнуться», вставить письмо, submit, проверить успех (поиск success-фразы в DOM с NFKC-нормализацией + латин-кириллица confusables). См. [[Writer service]].
 
-**AC**: E2E на тестовой вакансии — отклик отправлен, статус сохранён.
+Consumer-loop в `Orchestrator` пуллит заявки из очереди, проверяет auth + rate-limit ([[Anti-bot]]), дёргает Writer и пишет результат в БД + WS (`submission_event`, `captcha_event`). Детект капчи → `pause`; `POST /api/v1/orchestrator/resume` снимает паузу. Rate-limit использует таблицу `rate_limits` (token-bucket по sliding window из БД).
 
-**Зависимости**: 1.1, 1.5.
+**AC**: pytest зелёный (consumer-loop по всем веткам, rate-limiter, pause/resume, resume-endpoint); E2E на тестовой вакансии — отклик отправлен, статус `letter_sent`, строка в `rate_limits`.
+
+**Зависимости**: 1.1, 1.5, 1.6, 1.7.
 
 ---
 
