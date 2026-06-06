@@ -68,14 +68,15 @@ graph TB
 
 > [!note] Это разрешает «расшаривание ядра» — упомянуто в исходном ТЗ как открытый вопрос.
 
-### 3. MCP экспонируется через два транспорта
+### 3. LLM через LiteLLM (основной AI-канал в MVP)
+Единый интерфейс к 100+ провайдерам, multi-provider + fallback через `litellm.Router`. Backend-модуль `services/backend/src/headhunter_backend/ai/` с собственным router `/api/v1/ai`. См. [[AI Layer]] и [[Stage 1 - MVP#1.12 AI Layer — multi-provider + fallback — L|задачу 1.12]].
+
+### 4. MCP — параллельный канал (Stage 2)
+Появляется в [[Stage 2 - Расширение#2.1 MCP server — L|2.1]] как альтернатива AI Layer для подписчиков Claude Pro/Max. Два транспорта:
 - **stdio** — для Claude Desktop (стандартный способ конфигурации в `claude_desktop_config.json`)
 - **streamable HTTP** на `localhost:3845` — для внутренних UI-вызовов и отладки
 
 См. [[MCP]].
-
-### 4. LLM через LiteLLM
-Единый интерфейс к 100+ провайдерам, переключение в рантайме без изменения кода. См. [[AI Layer]].
 
 ### 5. Очередь внутри процесса
 Для single-user не нужен Redis/RabbitMQ, достаточно `asyncio.Queue` с персистенцией состояния в [[Storage|SQLite]].

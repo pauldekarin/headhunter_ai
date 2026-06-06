@@ -35,7 +35,7 @@ status: planned
 ## Экраны (MVP)
 
 1. **Onboarding** — дисклеймер ToS, выбор Chromium-профиля
-2. **Settings** — резюме, контекст, стиль письма, лимиты, выбор AI-режима (MCP / direct API)
+2. **Settings** — резюме, контекст, стиль письма, лимиты, список LLM-deployments (provider+model+key+api_base, primary первый, остальные — fallback chain), system-промпт
 3. **Search** — форма фильтра + кнопка запуска
 4. **Queue** — список вакансий с realtime-обновлением через WebSocket; статусы из [[Domain Model]]
 5. **LetterReview** — превью письма, edit, submit/skip

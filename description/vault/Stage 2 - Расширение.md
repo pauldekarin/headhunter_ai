@@ -5,24 +5,28 @@ status: planned
 
 # Stage 2 — Расширение
 
-**Цель**: внутренняя AI-абстракция ([[AI Layer]]), автоматическая отправка с лимитами, дедупликация, шаблоны промптов, e2e-тесты, авто-обновления.
+**Цель**: внешний AI-канал через [[MCP]] для Claude Desktop / Claude Code, автоматическая отправка с лимитами, дедупликация, шаблоны промптов, e2e-тесты, авто-обновления.
 
 ## Задачи
 
-### 2.1 LLM-абстракция через LiteLLM — `M`
+### 2.1 MCP server — `L`
 
-Слой `AILayer.generate(prompt, ctx) -> str` с поддержкой Anthropic, OpenAI, Ollama. Конфиг в settings. См. [[AI Layer]].
+MCP-сервер как параллельный канал работы с вакансиями для внешних AI-клиентов (Claude Desktop, Claude Code). Экспонирует tools поверх существующего backend HTTP API. См. [[MCP]].
 
-**AC**: Переключение провайдера в [[UI]] без рестарта; fallback при ошибке.
+MCP — отдельный сервис в `services/mcp/`, общается с backend только через HTTP API. Tools: `list_pending_vacancies`, `get_vacancy(id)`, `get_user_context()`, `submit_cover_letter(vacancy_id, text)`, `get_application_status(vacancy_id)`. Транспорт stdio + streamable HTTP.
 
-**Зависимости**: [[Stage 1 - MVP]] 1.6.
+Дополняет [[AI Layer]] из [[Stage 1 - MVP#1.12 AI Layer — multi-provider + fallback — L|1.12]]: пользователь либо приносит ключ к API-провайдеру (Stage 1 путь), либо подключает Claude Desktop по подписке (Stage 2 путь).
+
+**AC**: Claude Desktop с конфигом видит tools; вызов tool пишет в БД через HTTP API; собственный UI продолжает работать через REST/WS параллельно.
+
+**Зависимости**: [[Stage 1 - MVP]] 1.7, 1.10, 1.11, 1.12.
 
 **Стек**:
 
 | Задача | Библиотека | Почему | Альтернативы |
 |---|---|---|---|
-| LLM proxy | **LiteLLM** | 100+ провайдеров, OpenAI-совместимый API, retry/fallback/caching | langchain (тяжёлый); прямые SDK (дублирование) |
-| Локальный LLM | **Ollama** | Простой headless хостинг | llama.cpp |
+| MCP SDK | **`mcp`** (Anthropic official, Python) | Официальный, все транспорты | — |
+| Декларативные tools | **`fastmcp`** | Удобная обёртка с декораторами `@tool` | ручной handler-стиль через `mcp` |
 
 ---
 
@@ -123,6 +127,16 @@ Snapshot-тест селекторов hh.ru, daily smoke-test в CI. См. [[Pa
 **AC**: При поломке селектора падает CI с понятным diff.
 
 **Зависимости**: [[Stage 1 - MVP]] 1.3.
+
+---
+
+### 2.10 Документация подключения Claude Desktop — `S`
+
+README с готовым `claude_desktop_config.json` snippet. См. [[MCP]].
+
+**AC**: Пользователь по README настраивает Claude Desktop за < 5 минут.
+
+**Зависимости**: 2.1.
 
 ---
 
