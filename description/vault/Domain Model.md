@@ -27,10 +27,10 @@ status: planned
 | `RateLimitBudget` | оставшийся бюджет откликов (см. [[Anti-bot]]) |
 | `AuditLog` | все действия системы (парсинг, генерация, отправка, ошибки) |
 | `PromptTemplate` | YAML-шаблоны промптов с версиями |
-| `SearchHistory` | persisted поисковый таск: `id` (UUID), `url`, лимиты (`max_pages`/`max_vacancies`), `status` ([[#State machine `SearchHistory`\|state machine]]), прогресс (`parsed_pages`, `parsed_vacancies`), `started_at`/`finished_at`, `error`. FK-таргет для `Vacancy.search_id`. |
+| `SearchHistory` | persisted поисковый таск: `id` (UUID), `url`, лимиты (`max_pages`/`max_vacancies`), `status` ([[#State machine `SearchHistory`\|state machine]]), прогресс (`parsed_pages`, `parsed_vacancies`), `started_at`/`finished_at`, `error`. Связан с `Vacancy` через M2M-таблицу `search_vacancies`. |
 | `FilterSession` | in-memory сессия пикера: открытая вкладка Chromium на `https://hh.ru/search/vacancy` для ручной настройки фильтров. Живёт до confirm/cancel/закрытия вкладки. |
 
-`Vacancy` дополнительно несёт `search_id: str?` — FK на `SearchHistory.id` (nullable для legacy-строк до миграции `e5f9c1a273b4`). Привязка проставляется парсером при сохранении.
+`Vacancy` ↔ `SearchHistory` — many-to-many через ассоциативную таблицу `search_vacancies(search_id, vacancy_id)`. Парсер после `upsert_vacancy` вызывает `link_vacancy_to_search` (idempotent INSERT OR IGNORE). Если новый поиск перенаходит уже спарсенную вакансию — она присоединяется к новому `search_id`, не отвязываясь от прошлого. Миграция `a8c4f2d1e7b3` создала таблицу, забэкфилила из колонки `vacancies.search_id` (введённой `e5f9c1a273b4`) и удалила колонку.
 
 ## State machine `SearchHistory`
 
