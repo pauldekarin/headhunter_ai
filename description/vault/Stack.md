@@ -15,6 +15,7 @@ status: planned
 | UI framework | **SvelteKit 2 + Svelte 5** (TS) | Меньше boilerplate, runes-реактивность, отличный DX в Tauri webview |
 | Стили | **Tailwind CSS 4** | Утилитарный, без рантайма |
 | UI-компоненты | **shadcn-svelte** | Copy-paste, без vendor lock-in |
+| i18n | **Paraglide JS** (inlang) | Codegen JSON→типизированные tree-shakeable функции, ICU plurals, нативная интеграция со SvelteKit через Vite-плагин |
 | Формы | **Superforms + Zod** | Лучшая форма-библиотека для SvelteKit |
 | Backend язык | **Python 3.12+** | Прямо указано в ТЗ; лучшая экосистема для Playwright и MCP SDK |
 | Web-фреймворк | **FastAPI** | Async, OpenAPI auto, нативные WebSocket |
