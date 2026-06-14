@@ -27,6 +27,27 @@ status: planned
 | `RateLimitBudget` | оставшийся бюджет откликов (см. [[Anti-bot]]) |
 | `AuditLog` | все действия системы (парсинг, генерация, отправка, ошибки) |
 | `PromptTemplate` | YAML-шаблоны промптов с версиями |
+| `SearchHistory` | persisted поисковый таск: `id` (UUID), `url`, лимиты (`max_pages`/`max_vacancies`), `status` ([[#State machine `SearchHistory`\|state machine]]), прогресс (`parsed_pages`, `parsed_vacancies`), `started_at`/`finished_at`, `error`. FK-таргет для `Vacancy.search_id`. |
+| `FilterSession` | in-memory сессия пикера: открытая вкладка Chromium на `https://hh.ru/search/vacancy` для ручной настройки фильтров. Живёт до confirm/cancel/закрытия вкладки. |
+
+`Vacancy` дополнительно несёт `search_id: str?` — FK на `SearchHistory.id` (nullable для legacy-строк до миграции `e5f9c1a273b4`). Привязка проставляется парсером при сохранении.
+
+## State machine `SearchHistory`
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending: SearchService.start_search
+    pending --> running: _run открыл первую страницу
+    running --> exited: достигнут лимит/конец выдачи
+    running --> canceled: DELETE /search/vacancies/{id}
+    running --> failed: исключение в парсере
+    pending --> interrupted: процесс упал до старта
+    running --> interrupted: процесс упал во время
+    exited --> [*]
+    canceled --> [*]
+    failed --> [*]
+    interrupted --> [*]
+```
 
 ## State machine `Application`
 

@@ -65,9 +65,17 @@ REST endpoints под префиксом `/api/v1`: `POST /vacancies/search`, `G
 
 ### 1.6 Orchestrator + очередь — `M`
 
-State machine для каждой вакансии (см. [[Domain Model]]): `parsed → letter_pending → letter_ready → sent / error`. asyncio.Queue с персистенцией статусов в [[Storage|SQLite]]. История поисков восстанавливается через `GET /api/v1/vacancies/searches`, активный поиск — через `GET /api/v1/vacancies/search/{search_id}` и `DELETE /api/v1/vacancies/search/{search_id}` (отмена).
+State machine для каждой вакансии (см. [[Domain Model]]): `parsed → letter_pending → letter_ready → sent / error`. asyncio.Queue с персистенцией статусов в [[Storage|SQLite]].
 
-**AC**: При перезапуске бэка очередь восстанавливается из SQLite; история поисков и активные таски доступны через REST.
+**SearchService** управляет жизненным циклом поискового таска:
+- Двухшаговый picker: `POST /api/v1/search/picker/new` открывает hh.ru в Chromium → пользователь руками выставляет фильтры → `POST /api/v1/search/picker/{id}/confirm` читает URL из вкладки и валидирует домен.
+- Запуск поиска: `POST /api/v1/search/vacancies/new` с URL и опциональными `max_pages`/`max_vacancies` (дефолты из settings).
+- Активный таск: `GET /api/v1/search/vacancies/current` (204 если нет), `DELETE /api/v1/search/vacancies/{id}` отменяет.
+- Каждая вакансия привязана к запустившему её поиску через `Vacancy.search_id` (FK → `searches`). Очередь UI скоупится через `GET /api/v1/vacancies/?search_id=latest|all|<uuid>`.
+
+История завершённых/прерванных поисков пишется в таблицу `searches` (см. [[Storage]]). REST-эндпоинт истории — отдельная задача (см. [[REST]]).
+
+**AC**: При перезапуске бэка очередь восстанавливается из SQLite; активный таск доступен через `/search/vacancies/current`; UI показывает только вакансии текущего поиска по умолчанию.
 
 **Зависимости**: 1.4, 1.5.
 

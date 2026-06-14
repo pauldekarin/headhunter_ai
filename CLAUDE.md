@@ -33,7 +33,7 @@ The Obsidian vault at `description/vault/` is the spec. Always read relevant not
 ```
 apps/desktop/       Tauri 2 + SvelteKit (UI)
 services/backend/   Python (FastAPI + MCP + Playwright)
-description/vault/  Obsidian vault — DO NOT modify without explicit user ask
+description/vault/  Obsidian vault — keep in sync with code; update when architecture/stack/scope shifts
 ```
 
 ## Commands

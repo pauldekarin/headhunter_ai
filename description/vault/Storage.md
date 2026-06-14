@@ -15,7 +15,8 @@ status: planned
 
 | Таблица | Назначение |
 |---|---|
-| `vacancies` | спарсенные вакансии ([[Domain Model]]) |
+| `vacancies` | спарсенные вакансии ([[Domain Model]]); `search_id` FK → `searches.id` (nullable для legacy) |
+| `searches` | история поисковых тасков: URL, лимиты, статус, прогресс, `started_at`/`finished_at`, error |
 | `applications` | отклики (vacancy + letter + status) |
 | `cover_letters` | сгенерированные тексты с версиями |
 | `settings` | настройки приложения — синглтон (одна строка, фиксированный PK) |
