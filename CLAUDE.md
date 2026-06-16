@@ -62,10 +62,10 @@ Stage 0 (Setup) complete. Stage 1 (MVP) deep in flight. See `description/vault/S
 - **1.7** Backend API foundation — done (real endpoints over state machine; `cover_letters` + `settings` tables; settings get-or-create)
 - **1.8** Writer module — done (`BrowserWriter.submit` + captcha-pause + rate-limit gate)
 - **1.9** UI: SearchForm + VacancyList — done (queue page with picker + scoped list)
-- **1.10** UI: LetterReview — **current** (no route yet; needs preview/edit/regenerate/submit/skip on a vacancy card)
-- **1.11** UI: Settings — done **except LLM deployments editor** (search/user/limits tabs ship; LLM section is passthrough — `defaultLlm` + cached `llm` round-tripped through PUT)
+- **1.10** UI: LetterReview — done (Sheet-drawer in `lib/components/letter-review-sheet.svelte` + `letterReview` rune-store; preview/edit/regen/save/submit/skip + History tab with restore)
+- **1.11** UI: Settings — **current**, partial (search/user/limits tabs ship; LLM section is passthrough; **LLM deployments editor remains**)
 - **1.12** AI Layer — done (`AILayer.generate_cover_letter` + `/api/v1/ai` routes + `AutoApplyService` for auto-submit path)
 
 > [!note] AILayer rebuild on PUT /settings is the open gap inside 1.11/1.12 — `bootstrap_ai_layer` runs only on startup; PUT settings doesn't re-init the Router yet.
 
-When the user picks up the next task, they will say "starting 1.10" (or similar) and Claude responds with Socratic context, not code.
+When the user picks up the next task, they will say "starting 1.11" (or similar) and Claude responds with Socratic context, not code.

@@ -14,21 +14,22 @@ status: in-progress
 - [[Stage 2 - Расширение]] — внешний AI-канал через [[MCP]], авто-режим, e2e-тесты — **planned**
 - [[Stage 3 - Оптимизация]] — параллелизм, наблюдаемость, i18n, плагины — **planned**
 
-> [!summary] **Где мы сейчас:** Stage 1 — задачи 1.1–1.9 и 1.12 закрыты, 1.11 (Settings UI) закрыта частично (LLM-секция passthrough, нет редактора deployments), **1.10 (LetterReview UI) — следующая задача до выхода на MVP-демо**. Открытый системный гэп — Router AI-слоя не пересобирается на PUT /settings.
+> [!summary] **Где мы сейчас:** Stage 1 — задачи 1.1–1.10 и 1.12 закрыты. 1.11 (Settings UI) — partial (нет редактора `llm_deployments`). До MVP-демо остался один сдвоенный блок: **редактор deployments в Settings UI + invalidate-hook на PUT /settings, чтобы AILayer Router пересобирался без рестарта**.
 
 ## Критический путь MVP
 
 ```
 Stage 0 → 1.1 → 1.6 → 1.7 → 1.12 → 1.10 → MVP RELEASE
-              ↑                ↑     ↑
-        1.4, 1.5, 1.8, 1.9, 1.11    │
-        ─────────────done───────────┘
+              ↑                ↑     ↑     ↑
+        1.4, 1.5, 1.8, 1.9    │     │     │
+        ──────────done────────┘     │     │
+        + 1.10 LetterReview ────────┘     │
+        + 1.11 Settings (без LLM editor)──┘
 ```
 
 **Что осталось до релиза:**
-- **1.10 LetterReview UI** — карточка вакансии с превью письма, edit/regen/submit/skip.
-- **AILayer router rebuild** на PUT /settings (см. 1.11/1.12 open gap).
 - **LLM deployments editor** в Settings UI (1.11 подзадача).
+- **AILayer router rebuild** на PUT /settings (см. 1.11/1.12 open gap).
 
 **Минимум** для демо: backend + [[AI Layer]] (1.12) + UI (1.9–1.11). AI-генерация — основная фича MVP, идёт перед UI: 1.10 (LetterReview) показывает уже работающий вызов `POST /api/v1/ai/create_cover_letter/{vacancy_id}`.
 

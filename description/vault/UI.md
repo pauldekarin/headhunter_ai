@@ -86,7 +86,7 @@ apps/desktop/
 | **Onboarding** | done | `routes/onboarding/` | Дисклеймер ToS, согласие сохраняется в `consent.json` |
 | **Queue** | done (1.9) | `routes/queue/+page.svelte` | Picker (`searchPicker` store) + список вакансий (TanStack Query `vacanciesQueryKey`) + WS `vacancy_new`/`search_event`. Скоуп `?search_id=latest` |
 | **Settings** | partial (1.11) | `routes/settings/+page.svelte` | Tabs (search/user/limits) на shadcn `Tabs.Root`, Superforms + Zod v4, Skeleton при `isPending`, error-state с retry. LLM-секция **passthrough** — `defaultLlm` + cached `llm` подкладывается в PUT |
-| **LetterReview** | **TODO (1.10)** | — | Карточка вакансии с превью письма, кнопки Редактировать / Сгенерировать заново (`POST /api/v1/ai/create_cover_letter/{vacancy_id}`) / Отправить / Пропустить |
+| **LetterReview** | done (1.10) | `lib/components/letter-review-sheet.svelte` + `lib/stores/letter_review.svelte.ts` | Sheet-drawer справа. Открывается из Queue по `letterReview.open(vacancyId)`. Tabs: «Письмо» (textarea always-editable, sync по `version`) + «История» (DESC, restore через `AlertDialog`). Кнопки по `ProcessingState`. Auto-save on close если dirty. Generate: `POST /queue_for_letter` (если нет app'а) → `POST /ai/create_cover_letter/{id}` |
 | **History** | planned | — | Отправленные отклики с фильтрами и экспортом (Stage 2) |
 
 ## Связи

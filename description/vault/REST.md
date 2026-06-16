@@ -60,6 +60,7 @@ State machine — см. [[Domain Model#State machine `Application`]].
 | `GET` | `/status` | Текущий статус application'а |
 | `GET` | `/cover_letter` | Получить последнюю версию письма для вакансии |
 | `POST` | `/cover_letter` | Сохранить новую версию письма (`CoverLetterRequestAPISchema { text }`) |
+| `GET` | `/cover_letters` | Список всех версий письма для вакансии (DESC по `version`) — `list[CoverLetterResponseAPISchema]`. 404 если нет application'а. Используется в History-табе LetterReview UI (1.10) |
 
 ### Applications (`/api/v1/applications`)
 
