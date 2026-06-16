@@ -1,11 +1,13 @@
 ---
 tags: [project, hub]
-status: planned
+status: live
 ---
 
 # Headhunter AI
 
 Десктопное приложение, автоматизирующее отклики на вакансии hh.ru с генерацией сопроводительных писем через AI.
+
+> [!summary] **Текущий прогресс:** Stage 0 закрыт, Stage 1 (MVP) — большая часть собрана, осталась 1.10 (LetterReview UI). См. [[Roadmap]] и [[Stage 1 - MVP]].
 
 ## Суть
 

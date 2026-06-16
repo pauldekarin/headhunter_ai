@@ -1,11 +1,20 @@
 ---
 tags: [service]
-status: planned
+status: live
 ---
 
 # Parser service
 
 Модуль парсинга вакансий с hh.ru. Часть Python-бэка ([[REST]]), запускается как in-process модуль и работает поверх общего [[Chromium|BrowserCore]].
+
+## Реализация (snapshot)
+
+- `services/backend/src/headhunter_backend/browser/parser.py` — класс `Parser`. Главный метод: `async def parse(search_page, selectors) -> AsyncIterator[VacancyAPISchema]` — стримит вакансии по странице.
+- Селекторы — централизованы в `browser/selectors.py` (`Selectors` dataclass + готовый инстанс `HHRU_SELECTORS`). Группы: `SearchPage`, `VacancyPage`, `VacancyResponsePage`, `Captcha`.
+- Маппинг русского текста → enum: `browser/mappers.py` (`WorkFormatMapper`, `EmploymentTypeMapper`).
+- Нормализация текста для матчинга success-фраз: `browser/text.py:normalize` (NFKC + латин→кириллица confusables + lowercase + collapse whitespace).
+- HTML-парсинг — через `selectolax` (быстрее BeautifulSoup).
+- Запуск парсинга — через [[#SearchService|SearchService]] в `orchestrator/search.py`: создаёт `SearchTask` (asyncio.Task), сохраняет `SearchHistoryORM`, на каждой найденной вакансии делает upsert + `link_vacancy_to_search` + publish `VacancyWSEvent`.
 
 ## Зона ответственности
 

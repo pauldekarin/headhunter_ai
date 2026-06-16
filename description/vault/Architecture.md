@@ -1,11 +1,13 @@
 ---
 tags: [architecture]
-status: planned
+status: live
 ---
 
 # Architecture
 
 Общая архитектура [[Description|Headhunter AI]].
+
+> [!summary] **Live на текущий момент:** все блоки диаграммы (UI ↔ Backend ↔ Browser ↔ Storage ↔ LLMs) — собраны и связаны в `api/app.py` lifespan. **MCP блок и Claude Desktop путь — отложены до Stage 2** (`mcp` SDK не в `pyproject.toml`). См. [[Roadmap]] и [[Stage 1 - MVP]].
 
 ## Диаграмма
 
@@ -79,7 +81,10 @@ graph TB
 См. [[MCP]].
 
 ### 5. Очередь внутри процесса
-Для single-user не нужен Redis/RabbitMQ, достаточно `asyncio.Queue` с персистенцией состояния в [[Storage|SQLite]].
+Для single-user не нужен Redis/RabbitMQ, достаточно `asyncio.Queue` с персистенцией состояния в [[Storage|SQLite]]. Восстановление при рестарте — `Orchestrator.recover_from_db(session)` в lifespan: заново enqueue'ит активные applications. Поиски в активном статусе на момент рестарта помечаются `INTERRUPTED`.
+
+### 6. Single backend, multi-channel events
+`EventBroadcaster` (`api/broadcaster.py`) — внутренний event-bus. Подписчики: WebSocket `/ws/events` (UI realtime), `AutoApplyService` (auto-submit при `auto_submit=true`). Event-типы: `application_event`, `search_event`, `captcha_event`, `vacancy_new`, `auth_changed`.
 
 ## Граничные интерфейсы
 

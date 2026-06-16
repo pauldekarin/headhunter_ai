@@ -18,25 +18,25 @@ status: planned
 | Fingerprinting | Используем личный профиль пользователя — fingerprint совпадает с обычным |
 | Account takeover-detection (новое устройство) | Логин происходит руками в видимом окне один раз, дальше та же сессия |
 
-## Стек
+## Стек (фактический)
 
-| Задача | Библиотека | Почему | Подводные камни |
-|---|---|---|---|
-| Stealth | **patchright** | Drop-in Playwright, актуальные патчи | Гонка вооружений |
-| Token-bucket | **`limits`** (Python) | Готовая реализация | Для in-memory достаточно своего кода |
-| Random delays | свой код (~20 строк) | gauss-распределение вокруг human-like значений | — |
+| Задача | Реализация | Подводные камни |
+|---|---|---|
+| Stealth | **patchright** (drop-in Playwright) | Гонка вооружений |
+| Rate-limit | свой sliding-window over `rate_limits` таблицы (`RateLimitEventORM`, `orchestrator/rate_limiter.py`) | Без внешней `limits` библиотеки; consumer-loop вызывает `ensure_within_limits(session)` перед каждой отправкой |
+| Random delays | свой sleep с `min_delay_ms` ± `delay_jitter_ms` из settings | Параметры конфигурируются в Settings UI (1.11) |
+| Captcha-detect | DOM-маркер из `Selectors.Captcha.marker` | hh.ru использует свой капча-виджет, специфичные селекторы |
 
-## Captcha-handling
+## Captcha-handling (фактический поток)
 
 > [!warning] **Никаких 2captcha / anti-captcha.** Это активный обход, нарушает дух ToS и существенно повышает риск перманентного бана.
 
-Поток:
-1. Детектор по селектору/URL обнаружил капчу
-2. Orchestrator ставит очередь на паузу
-3. Уведомление в [[UI]] и в системный tray
-4. Открытое окно [[Chromium]] остаётся видимым
+1. `BrowserWriter.submit` обнаружил DOM-маркер → возвращает `SubmitResult { type: CAPTCHA }`
+2. `Orchestrator._process_one` вызывает `pause(reason="captcha")` + `enqueue(app_id)` обратно
+3. Публикует `CaptchaWSEvent` в `EventBroadcaster` → `/ws/events`
+4. UI показывает уведомление, открытое окно [[Chromium]] остаётся видимым
 5. Пользователь решает капчу руками
-6. После исчезновения капчи — orchestrator возобновляет очередь
+6. Пользователь дёргает `POST /api/v1/orchestrator/resume` (через кнопку в UI) → `resume_event.set()` → consumer-loop возобновляется
 
 ## Лимиты по умолчанию
 

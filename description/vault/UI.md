@@ -1,33 +1,69 @@
 ---
 tags: [service]
-status: planned
+status: live
 ---
 
 # UI
 
 Десктопный фронтенд приложения. Обёртка над [[REST]] + WebSocket.
 
-## Стек: Tauri 2 + SvelteKit (рекомендуется)
+## Стек (фактический)
 
-| Задача | Библиотека | Почему | Альтернативы |
-|---|---|---|---|
-| Desktop shell | **Tauri 2** (Rust) | ~10MB бандл vs ~150MB Electron; меньше RAM; native menus; auto-updater | Electron (огромная экосистема, тяжёлый); Wails (Go, моложе); локальный веб-UI без shell (проще, но не desktop-app) |
-| UI framework | **Svelte 5 + SvelteKit 2** (TS) | Меньше runtime, runes-реактивность, отличный DX в Tauri webview | React 19 (огромная экосистема, больше boilerplate); SolidJS (быстрее, меньше комьюнити) |
-| Компоненты | **shadcn-svelte + Tailwind CSS 4** | Copy-paste, без vendor lock-in | Skeleton UI, daisyUI |
-| i18n | **Paraglide JS** (inlang) | Codegen + типизированные ключи, tree-shaking, ICU plurals | typesafe-i18n (agnostic); svelte-i18n (runtime, без codegen) |
-| Формы | **Superforms + Zod** | Лучшая для SvelteKit, server+client валидация | Felte |
-| State | **Svelte runes + TanStack Query** | Локально — runes; сервер — TanStack Query (кеш, инвалидация, retry) | Zustand (если React); ручные stores |
-| WebSocket | native API + svelte-store обёртка | Без зависимостей для localhost | socket.io (overkill) |
+| Задача | Библиотека | Почему |
+|---|---|---|
+| Desktop shell | **Tauri 2** (Rust) | ~10MB бандл vs ~150MB Electron; native menus; auto-updater |
+| UI framework | **Svelte 5 (runes) + SvelteKit 2** (TS) | Меньше runtime, отличный DX в Tauri webview |
+| Adapter | **`@sveltejs/adapter-static`** | SPA, без SSR; webview грузит из FS |
+| Компоненты | **shadcn-svelte** (`src/lib/components/ui/*`) поверх `bits-ui` + `tailwind-variants` | Copy-paste, без vendor lock-in |
+| Стили | **Tailwind CSS 4** + `tw-animate-css` + `tailwind-merge` | Утилитарный, без рантайма |
+| Иконки | **`@lucide/svelte`** | Svelte 5 биндинги, передаём как component reference |
+| Toast | **`svelte-sonner`** + shadcn-обёртка `<Toaster />` | `toast.success/error` через Paraglide-сообщения |
+| Light/Dark | **`mode-watcher`** | Системная тема |
+| i18n | **`@inlang/paraglide-js`** + `@inlang/cli` | Codegen в `src/lib/paraglide/`; baseLocale `ru` |
+| Server cache | **`@tanstack/svelte-query`** | Источник истины для `settings`, `vacancies`, `search`. После PUT — `setQueryData(saved)` напрямую, без refetch |
+| Формы | **`sveltekit-superforms` + `formsnap`** + **`zod` v4** через `zod4` адаптер | SPA-режим, `dataType: "json"`, `resetForm: false`, `$effect` sync `formData ← settings.data` |
+| State | **Svelte runes** (`$state`, `$effect`) | Локально-компонентное. Глобально — `$lib/stores/*.svelte.ts` (`auth`, `search_picker`) |
+| WebSocket | native `WebSocket` API + handler в `$lib/api/events.ts` | Без зависимостей |
+| Шрифты | **`@fontsource-variable/jetbrains-mono`** | Bundled, оффлайн |
+
+## Структура
+
+```
+apps/desktop/
+├── src/
+│   ├── routes/
+│   │   ├── +layout.svelte         ← Sidebar + Inset + Toaster (Sidebar.Provider)
+│   │   ├── +layout.ts             ← loadConsent() + i18n
+│   │   ├── +page.svelte           ← redirect/landing
+│   │   ├── onboarding/            ← ToS-disclaimer (Stage 0)
+│   │   ├── queue/+page.svelte     ← 1.9 — picker + scoped vacancies list
+│   │   └── settings/+page.svelte  ← 1.11 — Tabs (search/user/limits) + Superforms
+│   ├── lib/
+│   │   ├── api/                   ← client.ts (fetch), types.ts (Settings/Vacancy/...), events.ts (WS), error.ts
+│   │   ├── queries/               ← TanStack Query factories: settings.ts, vacancies.ts, search.ts
+│   │   ├── stores/                ← auth.svelte.ts, search_picker.svelte.ts (runes-based)
+│   │   ├── schemas/               ← Zod schemas (settings.ts — для Superforms)
+│   │   ├── components/ui/         ← shadcn-svelte (button, input, tabs, form, switch, skeleton, sidebar, dialog, ...)
+│   │   └── paraglide/             ← codegen (commit-ignored)
+│   └── messages/{locale}.json     ← inlang dictionaries (ru.json)
+└── src-tauri/                     ← Rust shell
+```
+
+## Sidebar + layout
+
+Реализован на уровне `+layout.svelte` через shadcn `Sidebar` primitive (`Sidebar.Provider` оборачивает всё, `Sidebar.Root` + `Sidebar.Inset`). Навигация — data-driven массив `items: { title, href, icon }`, где `title` — paraglide function, `icon` — component reference. Активный пункт — `isActive={page.url.pathname === item.href}`. ProfileButton — в `Sidebar.Footer`. Sidebar.Trigger — в sticky-баре внутри `Sidebar.Inset`.
+
+> [!note] `Sidebar.Inset` рендерится как `<main>` — поэтому страницы (например `routes/queue/+page.svelte`) **не должны** иметь свой `<main>`.
 
 ## Локализация (i18n)
 
 Все user-facing строки UI идут через **Paraglide JS**:
 
 - Словари: `apps/desktop/messages/{locale}.json` (стандарт inlang messageFormat).
-- Codegen: `apps/desktop/src/lib/paraglide/` (генерируется через Vite-плагин при сборке).
+- Codegen: `apps/desktop/src/lib/paraglide/` (генерируется через Vite-плагин при сборке; git-ignored).
 - Использование: `import * as m from "$lib/paraglide/messages"; m.queue_title()` — ключ становится типизированной функцией; плюрализация через ICU (`{count, plural, one {…} few {…} many {…} other {…}}`).
 - Текущий baseLocale: `ru`. Добавление новых языков — отредактировать `project.inlang/settings.json` и положить `messages/<locale>.json`.
-- Скоуп MVP (Stage 1.6) — только `routes/queue/`. Auth/Profile/Settings экранируются в Stage 1.11+.
+- Покрытие на текущий момент: `nav_*`, `queue_*`, `picker_*`, `dialog_replace_*`, `toast_*`, `settings_*`, `status_*`. История по веткам растёт по мере добавления экранов.
 
 ## Альтернатива 1: Electron
 
@@ -45,12 +81,13 @@ status: planned
 
 ## Экраны (MVP)
 
-1. **Onboarding** — дисклеймер ToS, выбор Chromium-профиля
-2. **Settings** — резюме, контекст, стиль письма, лимиты, список LLM-deployments (provider+model+key+api_base, primary первый, остальные — fallback chain), system-промпт
-3. **Search** — форма фильтра + кнопка запуска
-4. **Queue** — список вакансий с realtime-обновлением через WebSocket; статусы из [[Domain Model]]
-5. **LetterReview** — превью письма, edit, submit/skip
-6. **History** — отправленные отклики с фильтрами и экспортом
+| Экран | Статус | Файл | Содержимое |
+|---|---|---|---|
+| **Onboarding** | done | `routes/onboarding/` | Дисклеймер ToS, согласие сохраняется в `consent.json` |
+| **Queue** | done (1.9) | `routes/queue/+page.svelte` | Picker (`searchPicker` store) + список вакансий (TanStack Query `vacanciesQueryKey`) + WS `vacancy_new`/`search_event`. Скоуп `?search_id=latest` |
+| **Settings** | partial (1.11) | `routes/settings/+page.svelte` | Tabs (search/user/limits) на shadcn `Tabs.Root`, Superforms + Zod v4, Skeleton при `isPending`, error-state с retry. LLM-секция **passthrough** — `defaultLlm` + cached `llm` подкладывается в PUT |
+| **LetterReview** | **TODO (1.10)** | — | Карточка вакансии с превью письма, кнопки Редактировать / Сгенерировать заново (`POST /api/v1/ai/create_cover_letter/{vacancy_id}`) / Отправить / Пропустить |
+| **History** | planned | — | Отправленные отклики с фильтрами и экспортом (Stage 2) |
 
 ## Связи
 - [[REST]] — основной API-клиент

@@ -1,11 +1,13 @@
 ---
 tags: [infra]
-status: planned
+status: partial
 ---
 
 # Testing
 
 Тестовая стратегия проекта.
+
+> [!warning] **Текущее состояние:** инфраструктура подключена (pytest + pytest-asyncio в `pyproject.toml`, vitest в `package.json`), но реального покрытия пока почти нет. Это сознательный долг — закроется отдельной задачей до выхода на MVP-демо (или в Stage 2.7).
 
 ## Тестовая пирамида
 

@@ -1,11 +1,11 @@
 ---
 tags: [stage/0]
-status: planned
+status: done
 ---
 
 # Stage 0 — Setup
 
-Фундамент: монорепа, tooling, CI, дисклеймер.
+Фундамент: монорепа, tooling, CI, дисклеймер. **Этап закрыт.**
 
 ## Задачи
 

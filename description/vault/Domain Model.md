@@ -1,11 +1,13 @@
 ---
 tags: [domain]
-status: planned
+status: live
 ---
 
 # Domain Model
 
 Сущности проекта [[Description|Headhunter AI]].
+
+> [!note] State machine `Application` ниже соответствует фактической `ProcessingStateMachine` (`orchestrator/state_machine.py`). Событие `letter_generated` поддерживает self-loop `LETTER_READY → LETTER_READY` и `LETTER_REVIEWING → LETTER_REVIEWING` — для повторной генерации без выхода из текущего состояния. Финальные состояния: `LETTER_SENT`, `SKIPPED`.
 
 ## Извлечено из исходного ТЗ
 

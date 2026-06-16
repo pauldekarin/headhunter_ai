@@ -1,11 +1,19 @@
 ---
 tags: [service, infra]
-status: planned
+status: live
 ---
 
 # Chromium
 
 Общее ядро браузерной автоматизации. **Один Chromium-инстанс на пользователя**, который шарят [[Parser service]] и [[Writer service]] (решает «расшаривание ядра» из исходного ТЗ).
+
+## Реализация (snapshot)
+
+- `services/backend/src/headhunter_backend/browser/core.py` — класс `BrowserCore`. Конструктор без параметров. Состояние: `profile_dir`, `headless=False`, `base_url="https://hh.ru"`, `_context`, `_auth_status`.
+- Главные методы: `start()`, `stop()`, `new_page(url) -> BrowserPage`, `get_auth_status() -> AuthStatusAPISchema`, `wait_for_login(poll_interval)`.
+- `browser/page.py` — `BrowserPage`: тонкая обёртка над Patchright Page (`goto`, `click`, `fill`, `text_content`, `wait_for_selector`, `bring_to_front`, ...).
+- Профиль: `~/.headhunter_ai/chrome-profile/` (через `browser.launch_persistent_context()`).
+- Шаринг: `BrowserCore` инстанцируется один раз в lifespan (`api/app.py:59`), Parser и Writer берут его как зависимость.
 
 ## Зона ответственности
 

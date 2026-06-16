@@ -10,7 +10,7 @@ The Obsidian vault at `description/vault/` is the spec. Always read relevant not
 - `description/vault/Architecture.md` — diagram + key decisions
 - `description/vault/Stack.md` — full tech stack
 - `description/vault/Roadmap.md` — phase plan
-- `description/vault/Stage 0 - Setup.md` — current active stage
+- `description/vault/Stage 1 - MVP.md` — current active stage
 
 ## Working mode (do not change without explicit user instruction)
 
@@ -22,11 +22,14 @@ The Obsidian vault at `description/vault/` is the spec. Always read relevant not
 ## Stack (summary; full table in `description/vault/Stack.md`)
 
 - **Desktop shell:** Tauri 2 (Rust)
-- **UI:** SvelteKit 2 + Svelte 5 + Tailwind CSS 4
-- **Backend:** Python 3.12 + FastAPI + Playwright (patchright) + `mcp` SDK
-- **Storage:** SQLite + SQLAlchemy 2 + Alembic
-- **AI abstraction:** LiteLLM
+- **UI:** SvelteKit 2 + Svelte 5 (runes) + Tailwind CSS 4 + shadcn-svelte
+- **UI data:** TanStack Query (server cache), Superforms + Zod v4 (forms), Paraglide JS (i18n, baseLocale `ru`)
+- **Backend:** Python 3.12 + FastAPI + Playwright (patchright)
+- **State machine:** `python-statemachine`
+- **Storage:** SQLite (WAL) + SQLAlchemy 2 (async/aiosqlite) + Alembic
+- **AI abstraction:** LiteLLM (`litellm.Router` with fallback chain)
 - **Tooling:** pnpm workspaces (JS), uv (Python), pre-commit, ruff, biome, clippy
+- **MCP:** deferred to Stage 2 — no `mcp` SDK in backend yet
 
 ## Layout
 
@@ -48,14 +51,21 @@ pre-commit run --all-files             # lint everything
 
 ## Current state
 
-Stage 0 (Setup) complete. Stage 1 (MVP) in progress. See `description/vault/Stage 1 - MVP.md`.
+Stage 0 (Setup) complete. Stage 1 (MVP) deep in flight. See `description/vault/Stage 1 - MVP.md`.
 
 - **1.1** BrowserCore (persistent profile, stealth) — done
-- **1.4** FastAPI backend skeleton — done (pulled ahead of 1.2 so auth-flow has a transport)
-- **1.2** Auth-flow — done
-- **1.3** Parser module — done
+- **1.2** Auth-flow — done (`/auth` routes + `AuthWSEvent`)
+- **1.3** Parser module — done (`browser/parser.py` streams `AsyncIterator[Vacancy]`)
+- **1.4** FastAPI backend skeleton — done
 - **1.5** SQLite + migrations — done
-- **1.6** Orchestrator + queue — current
-- **1.7**–**1.12** — TODO
+- **1.6** Orchestrator + queue — done (consumer with auth/rate-limit/captcha/fail handling, `recover_from_db` on startup, SearchService picker + scoped queue + cancel)
+- **1.7** Backend API foundation — done (real endpoints over state machine; `cover_letters` + `settings` tables; settings get-or-create)
+- **1.8** Writer module — done (`BrowserWriter.submit` + captcha-pause + rate-limit gate)
+- **1.9** UI: SearchForm + VacancyList — done (queue page with picker + scoped list)
+- **1.10** UI: LetterReview — **current** (no route yet; needs preview/edit/regenerate/submit/skip on a vacancy card)
+- **1.11** UI: Settings — done **except LLM deployments editor** (search/user/limits tabs ship; LLM section is passthrough — `defaultLlm` + cached `llm` round-tripped through PUT)
+- **1.12** AI Layer — done (`AILayer.generate_cover_letter` + `/api/v1/ai` routes + `AutoApplyService` for auto-submit path)
 
-When the user picks up the next task, they will say "starting 1.6" (or similar) and Claude responds with Socratic context, not code.
+> [!note] AILayer rebuild on PUT /settings is the open gap inside 1.11/1.12 — `bootstrap_ai_layer` runs only on startup; PUT settings doesn't re-init the Router yet.
+
+When the user picks up the next task, they will say "starting 1.10" (or similar) and Claude responds with Socratic context, not code.

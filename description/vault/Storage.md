@@ -1,6 +1,6 @@
 ---
 tags: [infra]
-status: planned
+status: live
 ---
 
 # Storage
@@ -9,22 +9,29 @@ status: planned
 
 ## SQLite
 
-Расположение: `~/.headhunter_ai/db.sqlite`. Режим: **WAL** (Write-Ahead Logging) для конкурентного чтения.
+Расположение: `~/.headhunter_ai/db.sqlite`. Режим: **WAL** + `foreign_keys=ON` — прагмы применяются в lifespan через `apply_sqlite_pragmas(engine)`.
 
 ### Таблицы
 
-| Таблица | Назначение |
-|---|---|
-| `vacancies` | спарсенные вакансии ([[Domain Model]]) |
-| `searches` | история поисковых тасков: URL, лимиты, статус, прогресс, `started_at`/`finished_at`, error |
-| `search_vacancies` | M2M-ассоциация (`search_id`, `vacancy_id`); вакансия может принадлежать нескольким поискам |
-| `applications` | отклики (vacancy + letter + status) |
-| `cover_letters` | сгенерированные тексты с версиями |
-| `settings` | настройки приложения — синглтон (одна строка, фиксированный PK) |
-| `prompts` | имена промпт-шаблонов |
-| `prompt_versions` | версии шаблонов с метриками |
-| `audit_log` | все действия (парсинг, генерация, отправка, ошибки) |
-| `rate_limits` | состояние token-bucket (см. [[Anti-bot]]) |
+| Таблица | Статус | Назначение / ключевые колонки |
+|---|---|---|
+| `vacancies` | live | Спарсенные вакансии. PK `id`, `apply_link` unique+indexed, JSON-колонки `work_formats`/`employment_types` |
+| `searches` | live | История поисковых тасков. PK `id` (UUID-str), `url`, `max_pages`, `max_vacancies`, `status` (SearchStatusAPISchema enum), `parsed_pages`, `parsed_vacancies`, `started_at`, `finished_at`, `error` |
+| `search_vacancies` | live | M2M-ассоциация (`search_id`, `vacancy_id`); вакансия может принадлежать нескольким поискам. Парсер делает `INSERT OR IGNORE` через `link_vacancy_to_search` |
+| `applications` | live | Отклики. PK `id`, **`vacancy_id` unique+indexed (1:1 с `vacancies`)**, `status` (ProcessingState enum, indexed), `retry_count`, `error_message`, `created_at`, `updated_at` (onupdate) |
+| `cover_letters` | live | Версионированные тексты. PK `id`, FK `application_id` (indexed), `version` (default=1), `text`, `created_at` |
+| `settings` | live | Синглтон. PK `id=1` (`autoincrement=False`) + **`CHECK (id = 1)`**. Колонки: `letter_style`, `resume_text`, `max_pages`, `max_vacancies`, `daily_limit`, `hourly_limit`, `min_delay_ms`, `delay_jitter_ms`, `auto_submit`, `llm_deployments` (JSON `list[LLMDeployment]`), `llm_system_prompt` |
+| `rate_limits` | live | Sliding-window event log (`RateLimitEventORM`). PK `id`, `occurred_at`. Используется в `orchestrator/rate_limiter.py` (`ensure_within_limits`, `get_used_hourly_limits`, `get_used_daily_limits`) |
+| `prompts` | planned (Stage 2) | Имена промпт-шаблонов |
+| `prompt_versions` | planned (Stage 2) | Версии шаблонов с метриками |
+| `audit_log` | planned | Все действия (парсинг, генерация, отправка, ошибки) — отдельная задача |
+
+### Связи
+
+```
+Vacancy ──1:1── Application ──1:M── CoverLetter
+   ╰── M2M (search_vacancies) ── SearchHistory
+```
 
 ### Стек
 

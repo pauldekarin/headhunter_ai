@@ -1,6 +1,6 @@
 ---
 tags: [service]
-status: planned
+status: live
 ---
 
 # AI Layer
@@ -9,23 +9,23 @@ status: planned
 
 ## Зачем
 - Self-contained приложение: пользователь приносит свой ключ к LLM-провайдеру, не зависит от внешнего Claude Desktop.
-- Поддержка приватного режима — локальный LLM через Ollama.
+- Поддержка приватного режима — локальный LLM через Ollama (OpenAI-совместимый `api_base`).
 - Resilience через multi-provider + fallback: если primary провайдер упал, автоматический переход к следующему.
 - Удобство для энтузиастов — поэкспериментировать с разными моделями.
 
-## Интерфейс
+## Реализация (фактическая)
 
-```python
-class AILayer:
-    async def generate(
-        self,
-        prompt: str,
-        ctx: ChatContext,
-        vacancy: Vacancy,
-    ) -> CoverLetter: ...
-```
+Модуль `services/backend/src/headhunter_backend/ai/`:
 
-Конкретный провайдер выбирается из настроек, переключаемо в рантайме.
+- **`layer.py`** — класс `AILayer`:
+  - `generate_cover_letter(vacancy_model, resume, style, system_prompt) -> AICoverLetterResult` — собирает messages через `PromptBuilder`, вызывает `litellm.Router.acompletion`, парсит usage/cost/`was_fallback`.
+  - `get_health_status() -> AILayerHealthStatus` — `HEALTHY` / `UNHEALTHY` / `NO_DEPLOYMENTS`. Под капотом — `PromptBuilder.build_ping()` через primary.
+  - `rebuild(deployments)` — пересборка Router'а. **Сейчас вызывается только из `bootstrap_ai_layer` на startup** (`api/app.py:42-52`); invalidate-hook на PUT settings — open gap (см. [[Stage 1 - MVP#1.11]]).
+- **`deployment.py`** — Pydantic `LLMDeployment { model, api_key?, api_base? }` с `id()` = SHA256(...)[:16].
+- **`prompts.py`** — `PromptBuilder.build_cover_letter_prompt(...)` и `.build_ping()`. Default system-промпт: личный кириллический cover letter под ≈250 слов, без выдумок.
+- **`result.py`** — `AICoverLetterResult { text, model_used, prompt/completion/total_tokens, was_fallback, cost_usd }`.
+- **`health.py`** — `AILayerHealthStatus` enum (`HEALTHY`/`UNHEALTHY`/`NO_DEPLOYMENTS`), `is_ready()`.
+- **`exceptions.py`** — `GenerationCoverLetterException`.
 
 ## Стек
 

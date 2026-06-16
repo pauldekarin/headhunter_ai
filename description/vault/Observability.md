@@ -1,28 +1,30 @@
 ---
 tags: [infra]
-status: planned
+status: partial
 ---
 
 # Observability
 
 Логи, метрики, трейсы, crash reporting.
 
+> [!summary] **Что подключено live:** `structlog` + `rich` для логов (`log.py:configure_logging`, `get_logger`). **Метрики (Prometheus), tracing (OpenTelemetry), crash reporting (Sentry) — не подключены**, это план на [[Stage 3 - Оптимизация]].
+
 ## Логи
 
 - **structlog** → JSON в `~/.headhunter_ai/logs/` ([[Storage]])
-- Ротация по дням, 14 дней TTL
-- Log-viewer вкладка в [[UI]] (опционально)
-- Все логи содержат `trace_id` для корреляции с tracing
+- Ротация по дням, 14 дней TTL — **planned** (сейчас вывод в stdout без ротации)
+- Log-viewer вкладка в [[UI]] (опционально) — planned
+- `trace_id` для корреляции — planned (требует opentelemetry-python)
 
-| Задача | Библиотека | Почему |
+| Задача | Библиотека | Статус |
 |---|---|---|
-| Структурные логи | **structlog** | Контекстные binders, JSON-вывод |
-| Dev-вывод | **rich** | Красивая подсветка |
+| Структурные логи | **structlog** | live (`configure_logging` в lifespan) |
+| Dev-вывод | **rich** | live (через structlog рендерер) |
 
-## Метрики
+## Метрики (planned)
 
-- **prometheus-client** Python, экспортер на `localhost:9090`
-- Опциональный Grafana dashboard в репе (template JSON)
+- **prometheus-client** Python, экспортер на `localhost:9090` — не подключено
+- Опциональный Grafana dashboard в репе (template JSON) — не подключено
 
 | Метрика | Тип | Описание |
 |---|---|---|
@@ -34,14 +36,14 @@ status: planned
 | `llm_latency_seconds{provider}` | Histogram | Латентность LLM-вызовов |
 | `rate_limit_remaining{period}` | Gauge | Оставшийся бюджет |
 
-## Tracing
+## Tracing (planned)
 
-- **opentelemetry-python**, по умолчанию в файл, опционально в OTLP-эндпоинт (Jaeger / Honeycomb / Tempo)
-- Span'ы от [[REST]] endpoint до Playwright action в [[Chromium]]
+- **opentelemetry-python**, по умолчанию в файл, опционально в OTLP-эндпоинт (Jaeger / Honeycomb / Tempo) — не подключено
+- Span'ы от [[REST]] endpoint до Playwright action в [[Chromium]] — не подключено
 
-## Crash reporting
+## Crash reporting (planned)
 
-- Опциональный **Sentry** (с opt-in диалогом при первом крэше)
+- Опциональный **Sentry** (с opt-in диалогом при первом крэше) — не подключено
 
 ## См. также
 - [[Stage 3 - Оптимизация]] задачи 3.2, 3.3
