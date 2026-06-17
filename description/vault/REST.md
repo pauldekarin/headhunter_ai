@@ -83,7 +83,7 @@ State machine — см. [[Domain Model#State machine `Application`]].
 | `GET` | `/api/v1/settings` | Получить настройки (`SettingsAPISchema`: search, user, llm, rate_limits — singleton row) |
 | `PUT` | `/api/v1/settings` | Обновить настройки целиком |
 
-> [!warning] **Open gap (см. [[Stage 1 - MVP#1.11]])**: PUT settings **не пересобирает** AILayer Router — `bootstrap_ai_layer` отрабатывает только на startup. Изменение `llm_deployments` через UI требует рестарта backend.
+> [!note] PUT /settings вызывает `ai_layer.rebuild(deployments=settings.llm_deployments)` в обработчике (`api/routes/settings.py:24`) — Router пересобирается без рестарта на каждое успешное обновление.
 
 ### Orchestrator (`/api/v1/orchestrator`)
 

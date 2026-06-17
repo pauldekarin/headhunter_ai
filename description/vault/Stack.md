@@ -17,7 +17,8 @@ status: live
 | UI framework | **SvelteKit 2 + Svelte 5** (TS) | live | Меньше boilerplate, runes-реактивность, отличный DX в Tauri webview |
 | Стили | **Tailwind CSS 4** | live | Утилитарный, без рантайма |
 | UI-компоненты | **shadcn-svelte** (через `bits-ui` + `tailwind-variants`) | live | Copy-paste в `src/lib/components/ui/`, без vendor lock-in |
-| Иконки | **`@lucide/svelte`** | live | Reactив-friendly Svelte 5 биндинги |
+| Иконки | **`@lucide/svelte`** | live | Reactив-friendly Svelte 5 биндинги. Везде используются per-icon импорты (`@lucide/svelte/icons/x`) — barrel `from "@lucide/svelte"` дико тормозит Vite dev из-за on-demand resolve тысяч модулей |
+| Drag-and-drop | **`@dnd-kit/svelte`** + `/sortable` | live | Sortable list в Settings AI tab (`createSortable` per item + `<DragDropProvider>` + ручной `arrayMove`). Адаптер отключает `OptimisticSortingPlugin` — reorder идёт через реактивный `{#each}` |
 | Toast/Sonner | **`svelte-sonner`** | live | Используется через `<Toaster />` в layout + `toast.success/error` |
 | Light/Dark | **`mode-watcher`** | live | Системная тема + переключатель |
 | i18n | **Paraglide JS** (`@inlang/paraglide-js` + `@inlang/cli`) | live | Codegen в `apps/desktop/src/lib/paraglide/`; baseLocale `ru` |

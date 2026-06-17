@@ -20,7 +20,7 @@ status: live
 - **`layer.py`** — класс `AILayer`:
   - `generate_cover_letter(vacancy_model, resume, style, system_prompt) -> AICoverLetterResult` — собирает messages через `PromptBuilder`, вызывает `litellm.Router.acompletion`, парсит usage/cost/`was_fallback`.
   - `get_health_status() -> AILayerHealthStatus` — `HEALTHY` / `UNHEALTHY` / `NO_DEPLOYMENTS`. Под капотом — `PromptBuilder.build_ping()` через primary.
-  - `rebuild(deployments)` — пересборка Router'а. **Сейчас вызывается только из `bootstrap_ai_layer` на startup** (`api/app.py:42-52`); invalidate-hook на PUT settings — open gap (см. [[Stage 1 - MVP#1.11]]).
+  - `rebuild(deployments)` — пересборка Router'а. Вызывается из `bootstrap_ai_layer` на startup (`api/app.py:42-52`) **и из route handler `api/routes/settings.py:24`** после каждого успешного PUT /settings. Router пересобирается без рестарта.
 - **`deployment.py`** — Pydantic `LLMDeployment { model, api_key?, api_base? }` с `id()` = SHA256(...)[:16].
 - **`prompts.py`** — `PromptBuilder.build_cover_letter_prompt(...)` и `.build_ping()`. Default system-промпт: личный кириллический cover letter под ≈250 слов, без выдумок.
 - **`result.py`** — `AICoverLetterResult { text, model_used, prompt/completion/total_tokens, was_fallback, cost_usd }`.
